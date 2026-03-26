@@ -8,5 +8,6 @@ gem 'async-websocket'
 group :development, :test do
   gem 'bundler', '~> 2.0'
   gem 'rspec', '~> 3.12'
+  gem 'async-rspec'
   gem 'rubocop'
 end
