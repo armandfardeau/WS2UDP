@@ -6,15 +6,19 @@ require_relative 'websocket_client'
 module WS2XX
   # Bridge orchestrator: manages the lifecycle and composition of bridge components
   class Bridge
-    attr_reader :config, :ws_server, :destinations
+    attr_reader :config, :ws_server, :broadcaster, :error_code
 
     def initialize(config)
       @config = config
-      @ws_client = WebSocketClient.new(url: @config[:ws_url], api_key: @config[:ws_api_key], options: @config)
+      @ws_client = WebSocketClient.new(
+        url: @config[:ws_url],
+        api_key: @config[:ws_api_key],
+        retry_attempts: @config.fetch(:retry_attempts, 3),
+        options: @config
+      )
       @broadcaster_builder = Broadcasters::Builder.new
       @broadcaster = nil
       @error_code = 0
-      @retry_attempts = 3
     end
 
     # Setup and start the bridge
@@ -32,7 +36,7 @@ module WS2XX
 
     # Run the bridge (blocks until shutdown)
     def run
-      run_loop
+      @ws_client.run(@broadcaster)
     ensure
       shutdown
     end
@@ -46,24 +50,6 @@ module WS2XX
     end
 
     private
-
-    def run_loop
-      Async do
-        @ws_client.run(@broadcaster)
-      rescue EOFError => e
-        Console.logger.warn "[BRIDGE] WebSocket connection closed: #{e.message}"
-        return abort_with_error('Maximum retry attempts reached. Shutting down.') unless @retry_attempts.positive?
-
-        Console.logger.info '[BRIDGE] Retrying connection...'
-        @retry_attempts -= 1
-        run
-      end
-    end
-
-    def abort_with_error(message)
-      Console.logger.error "[BRIDGE] #{message}"
-      @error_code = 1
-    end
 
     def print_startup_info
       Console.logger.info "WS2XX Bridge v#{WS2XX::VERSION}"

@@ -14,7 +14,7 @@ module WS2XX
 
     # Create and start bridge with config
     bridge = Bridge.new(config)
-    code = bridge.start
-    exit(code)
+    bridge.start
+    exit(bridge.error_code)
   end
 end
