@@ -19,6 +19,7 @@ class WebSocketClient
     stream_messages(broadcaster)
   rescue EOFError => e
     Console.logger.warn "[WS CLIENT] Connection closed: #{e.message}"
+    raise
   rescue StandardError => e
     Console.logger.error "[WS CLIENT] Error: #{e.class} - #{e.message}"
     raise
