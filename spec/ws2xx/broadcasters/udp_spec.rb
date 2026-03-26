@@ -4,8 +4,8 @@ require 'spec_helper'
 require 'ws2xx/broadcasters/udp'
 
 describe WS2XX::Broadcasters::UDP do
-  subject(:broadcaster) { WS2XX::Broadcasters::UDP.new(host, port) }
-  
+  subject(:broadcaster) { described_class.new(host, port) }
+
   let(:host) { '127.0.0.1' }
   let(:port) { 5000 }
 
@@ -19,14 +19,14 @@ describe WS2XX::Broadcasters::UDP do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('UDP_HOST').and_return('192.168.1.1')
       allow(ENV).to receive(:[]).with('UDP_PORT').and_return('6000')
-      
-      broadcaster = WS2XX::Broadcasters::UDP.new
+
+      broadcaster = described_class.new
       expect(broadcaster.remote_host).to eq('192.168.1.1')
       expect(broadcaster.remote_port).to eq(6000)
     end
 
     it 'defaults to 127.0.0.1:5000 when no env vars' do
-      broadcaster = WS2XX::Broadcasters::UDP.new
+      broadcaster = described_class.new
       expect(broadcaster.remote_host).to eq('127.0.0.1')
       expect(broadcaster.remote_port).to eq(5000)
     end
@@ -42,7 +42,7 @@ describe WS2XX::Broadcasters::UDP do
       Async do
         broadcaster.broadcast('test message')
       end
-      
+
       expect(UDPSocket).to have_received(:new)
       expect(mock_socket).to have_received(:connect).with(host, port)
       expect(mock_socket).to have_received(:send).with('test message', 0)
@@ -58,7 +58,7 @@ describe WS2XX::Broadcasters::UDP do
         broadcaster.broadcast('first')
         broadcaster.broadcast('second')
       end
-      
+
       expect(UDPSocket).to have_received(:new).once
       expect(mock_socket).to have_received(:send).twice
     end
@@ -69,7 +69,7 @@ describe WS2XX::Broadcasters::UDP do
       Async do
         broadcaster.broadcast('test')
       end
-      
+
       # Error is logged, not raised in Async
       # Verify socket was not set
       expect(broadcaster.instance_variable_get(:@socket)).to be_nil
@@ -84,7 +84,7 @@ describe WS2XX::Broadcasters::UDP do
       Async do
         broadcaster.broadcast('test')
       end
-      
+
       expect(broadcaster.instance_variable_get(:@socket)).to be_nil
     end
   end

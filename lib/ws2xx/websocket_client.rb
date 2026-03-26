@@ -31,14 +31,17 @@ module WS2XX
     private
 
     def stream_messages(broadcaster)
-      @received_first_message = false
       Async::WebSocket::Client.connect(endpoint) do |connection|
         susbcribe_to_messages(connection)
 
         while (message = connection.read)
           message = Message.parse(message)
-          broadcaster.broadcast(message.parsed_message) if message.valid?
-          Console.logger.info "[WS CLIENT] Broadcasted message: #{message.parsed_message}"
+          if message.valid?
+            broadcaster.broadcast(message.to_nmea)
+            Console.logger.info "[WS CLIENT] Broadcasted message: #{message.to_json}"
+          else
+            Console.logger.warn "[WS CLIENT] Invalid message received: #{message.errors.join(', ')}"
+          end
         end
       end
     end
@@ -52,7 +55,7 @@ module WS2XX
         'ApiKey' => @api_key,
         'BoundingBoxes' => @options.fetch(:bounding_boxes) { raise 'Bounding boxes are required' },
         'FiltersShipMMSI' => @options.fetch(:filters_ship_mmsis, []),
-        'FilterMessageTypes' => @options.fetch(:filter_message_types, ['PositionReport'])
+        'FilterMessageTypes' => @options.fetch(:filter_message_types, [])
       }
 
       Console.logger.info "[WS CLIENT] Subscribing with message: #{subscription_message}"

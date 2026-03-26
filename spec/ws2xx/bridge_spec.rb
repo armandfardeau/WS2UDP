@@ -3,6 +3,8 @@
 require 'spec_helper'
 
 describe WS2XX::Bridge do
+  subject(:bridge) { described_class.new(config) }
+
   let(:config) do
     {
       ws_url: 'wss://example.com/stream',
@@ -12,8 +14,6 @@ describe WS2XX::Bridge do
       ]
     }
   end
-
-  subject(:bridge) { WS2XX::Bridge.new(config) }
 
   describe '#initialize' do
     it 'creates a WebSocketClient with config' do
@@ -63,7 +63,7 @@ describe WS2XX::Bridge do
       Async do
         bridge.run
       end
-      
+
       expect(mock_ws_client).to have_received(:run).with(mock_broadcaster)
     end
 
@@ -73,13 +73,11 @@ describe WS2XX::Bridge do
       bridge.instance_variable_set(:@broadcaster, mock_broadcaster)
 
       Async do
-        begin
-          bridge.run
-        rescue StandardError
-          # error is expected
-        end
+        bridge.run
+      rescue StandardError
+        # error is expected
       end
-      
+
       expect(mock_broadcaster).to have_received(:close)
       expect(bridge.instance_variable_get(:@broadcaster)).to be_nil
     end
@@ -95,20 +93,20 @@ describe WS2XX::Bridge do
     it 'orchestrates setup_components, run, and shutdown' do
       call_order = []
       mock_broadcaster = spy('broadcaster')
-      
+
       allow_any_instance_of(WS2XX::Broadcasters::Builder).to receive(:build) do
         call_order << :build
         mock_broadcaster
       end
-      
+
       allow(mock_ws_client).to receive(:run) do
         call_order << :run
       end
-      
+
       Async do
         bridge.start
       end
-      
+
       # Verify the sequence and cleanup
       expect(call_order).to include(:build, :run)
       expect(mock_broadcaster).to have_received(:close)
@@ -118,12 +116,12 @@ describe WS2XX::Bridge do
     it 'calls setup_components before run' do
       call_order = []
       mock_broadcaster = spy('broadcaster')
-      
+
       allow_any_instance_of(WS2XX::Broadcasters::Builder).to receive(:build) do
         call_order << :build
         mock_broadcaster
       end
-      
+
       allow(mock_ws_client).to receive(:run) do
         call_order << :run
       end
@@ -131,7 +129,7 @@ describe WS2XX::Bridge do
       Async do
         bridge.start
       end
-      
+
       expect(call_order).to include(:build)
       expect(call_order.index(:build)).to be < call_order.index(:run)
     end

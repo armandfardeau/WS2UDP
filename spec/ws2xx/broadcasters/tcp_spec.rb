@@ -4,8 +4,8 @@ require 'spec_helper'
 require 'ws2xx/broadcasters/tcp'
 
 describe WS2XX::Broadcasters::TCP do
-  subject(:broadcaster) { WS2XX::Broadcasters::TCP.new(host, port) }
-  
+  subject(:broadcaster) { described_class.new(host, port) }
+
   let(:host) { '127.0.0.1' }
   let(:port) { 6000 }
 
@@ -19,14 +19,14 @@ describe WS2XX::Broadcasters::TCP do
       allow(ENV).to receive(:[]).and_call_original
       allow(ENV).to receive(:[]).with('TCP_HOST').and_return('192.168.1.1')
       allow(ENV).to receive(:[]).with('TCP_PORT').and_return('7000')
-      
-      broadcaster = WS2XX::Broadcasters::TCP.new
+
+      broadcaster = described_class.new
       expect(broadcaster.remote_host).to eq('192.168.1.1')
       expect(broadcaster.remote_port).to eq(7000)
     end
 
     it 'defaults to 127.0.0.1:5000 when no env vars' do
-      broadcaster = WS2XX::Broadcasters::TCP.new
+      broadcaster = described_class.new
       expect(broadcaster.remote_host).to eq('127.0.0.1')
       expect(broadcaster.remote_port).to eq(5000)
     end
@@ -41,7 +41,7 @@ describe WS2XX::Broadcasters::TCP do
       Async do
         broadcaster.broadcast('test message')
       end
-      
+
       expect(TCPSocket).to have_received(:new).with(host, port)
       expect(mock_socket).to have_received(:write).with('test message')
     end
@@ -55,7 +55,7 @@ describe WS2XX::Broadcasters::TCP do
         broadcaster.broadcast('first')
         broadcaster.broadcast('second')
       end
-      
+
       expect(TCPSocket).to have_received(:new).once
       expect(mock_socket).to have_received(:write).twice
     end
@@ -66,7 +66,7 @@ describe WS2XX::Broadcasters::TCP do
       Async do
         broadcaster.broadcast('test')
       end
-      
+
       # Error is logged, not raised in Async
       # Verify socket was not set
       expect(broadcaster.instance_variable_get(:@socket)).to be_nil
@@ -81,7 +81,7 @@ describe WS2XX::Broadcasters::TCP do
       Async do
         broadcaster.broadcast('test')
       end
-      
+
       expect(broadcaster.instance_variable_get(:@socket)).to be_nil
     end
   end

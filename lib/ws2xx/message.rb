@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require 'ais_to_nmea'
+require 'json'
+
 module WS2XX
   # Represents a WebSocket message
   class Message
@@ -7,7 +10,7 @@ module WS2XX
 
     def initialize(raw_message)
       @raw_message = raw_message
-      @parsed_message = nil
+      @data = {}
       @errors = []
     end
 
@@ -20,7 +23,27 @@ module WS2XX
     end
 
     def parse
-      @parsed_message = @raw_message.to_str
+      data = from_json(@raw_message.to_str)
+      return @data = {} if data.nil?
+
+      parsed = extract_payload(data)
+      if parsed.nil? || parsed.empty?
+        add_error('Message field is missing or invalid')
+        @data = {}
+      else
+        @data = parsed
+      end
+    end
+
+    def to_nmea
+      AisToNmea.to_nmea(@data)
+    rescue AisToNmea::Error => e
+      Console.logger.error "NMEA conversion error: #{e.message}"
+      []
+    end
+
+    def to_json(*_args)
+      @data.to_json
     end
 
     def valid?
@@ -31,11 +54,32 @@ module WS2XX
       @errors.dup
     end
 
+    def add_error(error)
+      @errors << error
+    end
+
     def validate!
       return unless @parsed_message.nil? || @parsed_message.empty?
 
-      @errors << 'Message is empty'
-      false
+      add_error('Message is empty')
+      {}
+    end
+
+    def from_json(json_str)
+      @parsed_message = JSON.parse(json_str)
+    rescue JSON::ParserError => e
+      add_error("JSON parsing error: #{e.message}")
+      nil
+    end
+
+    # Accept both AIS stream format (`{"Message": {"Type": {...}}}`)
+    # and plain payload hashes used by tests/integrations.
+    def extract_payload(data)
+      message = data['Message']
+      return data if message.nil?
+      return message.each_value.first if message.respond_to?(:each_value)
+
+      nil
     end
   end
 end

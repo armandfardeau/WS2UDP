@@ -11,7 +11,9 @@ module WS2XX
       @options = {
         ws_url: nil,
         ws_api_key: nil,
-        destinations: []
+        destinations: [],
+        filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
+        filters_ship_mmsis: []
       }
     end
 
@@ -28,6 +30,7 @@ module WS2XX
 
         parse_ws_configuration(opts)
         parse_destination_configuration(opts)
+        parse_options(opts)
 
         opts.separator 'Common options:'
 
@@ -116,6 +119,20 @@ module WS2XX
         host: host,
         port: port.to_i
       }
+    end
+
+    def parse_options(opts)
+      opts.separator 'Other options:'
+      opts.on('--message-types TYPES', String,
+              'Comma-separated list of message types to filter (default: PositionReport, ShipStaticData, SafetyBroadcastMessage)') do |types|
+        @options[:filter_message_types] = types.split(',').map(&:strip)
+      end
+
+      opts.on('--mmsis MMSIS', String, 'Comma-separated list of ship MMSIs to filter (default: [])') do |mmsis|
+        @options[:filters_ship_mmsis] = mmsis.split(',').map(&:strip)
+      end
+
+      opts.separator ''
     end
   end
 end

@@ -13,7 +13,7 @@ rescue LoadError
   # Console not available, continue
 end
 
-# Mock Console logger to suppress output during tests  
+# Mock Console logger to suppress output during tests
 module Console
   def self.logger
     @logger ||= SilentLogger.new
@@ -22,12 +22,16 @@ end
 
 class SilentLogger
   def info(message); end
-  def warn(message); handle_async_warning(message) end
+
+  def warn(message)
+    handle_async_warning(message)
+  end
+
   def error(message); end
   def debug(message); end
-  
+
   private
-  
+
   def handle_async_warning(message)
     # Silently ignore async task warnings
   end

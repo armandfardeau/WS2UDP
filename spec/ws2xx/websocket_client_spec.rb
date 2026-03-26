@@ -3,11 +3,11 @@
 require 'spec_helper'
 
 describe WS2XX::WebSocketClient do
+  subject(:client) { described_class.new(url: url, api_key: api_key, options: options) }
+
   let(:url) { 'wss://example.com/stream' }
   let(:api_key) { 'test-api-key' }
   let(:options) { { bounding_boxes: [[40.7, -74.0, 40.8, -73.9]] } }
-  
-  subject(:client) { WS2XX::WebSocketClient.new(url: url, api_key: api_key, options: options) }
 
   describe '#initialize' do
     it 'sets url, api_key, and options' do
@@ -24,7 +24,7 @@ describe WS2XX::WebSocketClient do
     it 'connects to the WebSocket endpoint and handles messages' do
       mock_message = double('message')
       allow(mock_message).to receive(:to_str).and_return('{"test": "message"}')
-      
+
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
       allow(mock_connection).to receive(:write)
       allow(mock_connection).to receive(:read).and_return(mock_message, nil)
@@ -33,7 +33,7 @@ describe WS2XX::WebSocketClient do
       Async do
         client.run(broadcaster)
       end
-      
+
       expect(Async::WebSocket::Client).to have_received(:connect)
       expect(broadcaster).to have_received(:broadcast)
     end
@@ -47,7 +47,7 @@ describe WS2XX::WebSocketClient do
       Async do
         client.run(broadcaster)
       end
-      
+
       expect(mock_connection).to have_received(:write)
     end
 
@@ -69,7 +69,7 @@ describe WS2XX::WebSocketClient do
       Async do
         client.run(broadcaster)
       end
-      
+
       # Error is logged and raised from the Async block
       # The test passes if no exception is raised at the test level
     end
@@ -79,7 +79,7 @@ describe WS2XX::WebSocketClient do
       message2 = double('message2')
       allow(message1).to receive(:to_str).and_return('{"data": "msg1"}')
       allow(message2).to receive(:to_str).and_return('{"data": "msg2"}')
-      
+
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
       allow(mock_connection).to receive(:write)
       allow(mock_connection).to receive(:read).and_return(message1, message2, nil)
@@ -88,7 +88,7 @@ describe WS2XX::WebSocketClient do
       Async do
         client.run(broadcaster)
       end
-      
+
       expect(broadcaster).to have_received(:broadcast).at_least(:once)
     end
   end
@@ -99,8 +99,8 @@ describe WS2XX::WebSocketClient do
         .with(url, alpn_protocols: Async::HTTP::Protocol::HTTP11.names)
         .and_return(double('endpoint'))
 
-      endpoint = client.send(:endpoint)
-      
+      client.send(:endpoint)
+
       expect(Async::HTTP::Endpoint).to have_received(:parse)
     end
 
@@ -110,7 +110,7 @@ describe WS2XX::WebSocketClient do
 
       endpoint1 = client.send(:endpoint)
       endpoint2 = client.send(:endpoint)
-      
+
       expect(Async::HTTP::Endpoint).to have_received(:parse).once
       expect(endpoint1).to be(endpoint2)
     end
@@ -121,30 +121,30 @@ describe WS2XX::WebSocketClient do
 
     it 'sends subscription message with API key and bounding boxes' do
       client.send(:susbcribe_to_messages, mock_connection)
-      
+
       expect(mock_connection).to have_received(:write)
     end
 
     it 'raises error if bounding_boxes not provided' do
-      client_no_bbox = WS2XX::WebSocketClient.new(url: url, api_key: api_key, options: {})
-      
+      client_no_bbox = described_class.new(url: url, api_key: api_key, options: {})
+
       expect { client_no_bbox.send(:susbcribe_to_messages, mock_connection) }
         .to raise_error('Bounding boxes are required')
     end
 
     it 'includes optional filters in subscription message' do
-      client_with_filters = WS2XX::WebSocketClient.new(
+      client_with_filters = described_class.new(
         url: url,
         api_key: api_key,
         options: {
           bounding_boxes: [[40.7, -74.0, 40.8, -73.9]],
           filters_ship_mmsis: ['123456789'],
-          filter_message_types: ['PositionReport', 'StaticData']
+          filter_message_types: %w[PositionReport StaticData]
         }
       )
-      
+
       client_with_filters.send(:susbcribe_to_messages, mock_connection)
-      
+
       expect(mock_connection).to have_received(:write)
     end
   end
