@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/armandfardeau/AIS_JSON2NMEA.git
-  revision: 11bdef7e12f03405205ba2077b84535717722f10
+  revision: b12af3aeca2359f25bdc8db20203b1737a2adfb9
   specs:
     ais_to_nmea (0.1.0)
 

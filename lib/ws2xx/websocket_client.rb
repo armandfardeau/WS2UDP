@@ -35,14 +35,18 @@ module WS2XX
         susbcribe_to_messages(connection)
 
         while (message = connection.read)
-          message = Message.parse(message)
-          if message.valid?
-            broadcaster.broadcast(message.to_nmea)
-            Console.logger.info "[WS CLIENT] Broadcasted message: #{message.to_json}"
-          else
-            Console.logger.warn "[WS CLIENT] Invalid message received: #{message.errors.join(', ')}"
-          end
+          process_message(message, broadcaster)
         end
+      end
+    end
+
+    def process_message(raw_message, broadcaster)
+      message = Message.parse(raw_message)
+      if message.valid? && !message.to_nmea.nil?
+        broadcaster.broadcast(message.to_nmea)
+        Console.logger.info "[WS CLIENT] Broadcasted message: #{message.to_json}"
+      else
+        Console.logger.warn "[WS CLIENT] Invalid message received: #{message.errors.join(', ')}"
       end
     end
 

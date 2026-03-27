@@ -13,39 +13,22 @@ module WS2XX
         super()
         @remote_host = remote_host
         @remote_port = remote_port.to_i
-        @socket = nil
+        @socket = UDPSocket.new()
       end
 
       def broadcast(message)
         Async do
-          ensure_socket!
-
-          @socket.send(message, 0)
+          @socket.send(message,0, @remote_host, @remote_port)
           Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
         rescue StandardError => e
           Console.logger.error "[UDP] Error sending message: #{e.message}"
-          @socket = nil
+          close
         end
       end
 
       def close
         @socket&.close
         @socket = nil
-      end
-
-      private
-
-      def ensure_socket!
-        return if @socket
-
-        begin
-          @socket = UDPSocket.new
-          @socket.connect(@remote_host, @remote_port)
-          Console.logger.info "[UDP] Connected to #{@remote_host}:#{@remote_port}"
-        rescue StandardError => e
-          Console.logger.error "[UDP] Connection error: #{e.message}"
-          raise
-        end
       end
     end
   end

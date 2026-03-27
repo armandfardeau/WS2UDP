@@ -123,8 +123,10 @@ module WS2XX
 
     def parse_options(opts)
       opts.separator 'Other options:'
-      opts.on('--message-types TYPES', String,
-              'Comma-separated list of message types to filter (default: PositionReport, ShipStaticData, SafetyBroadcastMessage)') do |types|
+      message_types_help = 'Comma-separated list of message types to filter '
+      message_types_help += '(default: PositionReport, ShipStaticData, SafetyBroadcastMessage)'
+
+      opts.on('--message-types TYPES', String, message_types_help) do |types|
         @options[:filter_message_types] = types.split(',').map(&:strip)
       end
 

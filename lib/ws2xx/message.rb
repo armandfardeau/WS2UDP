@@ -36,10 +36,12 @@ module WS2XX
     end
 
     def to_nmea
-      AisToNmea.to_nmea(@data)
+      return @to_nmea if defined?(@to_nmea)
+
+      @to_nmea = AisToNmea.to_nmea(@data)
     rescue AisToNmea::Error => e
-      Console.logger.error "NMEA conversion error: #{e.message}"
-      []
+      add_error("NMEA conversion error: #{e.message}")
+      nil
     end
 
     def to_json(*_args)
@@ -61,8 +63,7 @@ module WS2XX
     def validate!
       return unless @parsed_message.nil? || @parsed_message.empty?
 
-      add_error('Message is empty')
-      {}
+      add_error('Message is empty')      
     end
 
     def from_json(json_str)
