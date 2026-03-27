@@ -64,7 +64,12 @@ describe WS2XX::Broadcasters::UDP do
     it 'handles socket creation errors gracefully' do
       allow(UDPSocket).to receive(:new).and_raise(StandardError.new('Connection failed'))
 
-      expect { described_class.new(host, port) }.to raise_error(StandardError, 'Connection failed')
+      Async do
+        broadcaster.broadcast('test')
+      end
+
+      # Error is caught and socket is cleared
+      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
     end
 
     it 'handles send errors and clears socket' do

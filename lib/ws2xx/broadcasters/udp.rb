@@ -13,11 +13,14 @@ module WS2XX
         super()
         @remote_host = remote_host
         @remote_port = remote_port.to_i
-        @socket = UDPSocket.new()
+        @socket = nil
       end
 
       def broadcast(message)
-        @socket.send(message, 0, @remote_host, @remote_port)
+        socket = ensure_socket!
+        raise 'UDP socket is not available' if socket.nil?
+
+        socket.send(message, 0, @remote_host, @remote_port)
         Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
       rescue StandardError => e
         Console.logger.error "[UDP] Error sending message: #{e.message}"
@@ -27,6 +30,12 @@ module WS2XX
       def close
         @socket&.close
         @socket = nil
+      end
+
+      private
+
+      def ensure_socket!
+        @ensure_socket ||= UDPSocket.new
       end
     end
   end

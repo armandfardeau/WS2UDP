@@ -16,9 +16,9 @@ module WS2XX
 
       def broadcast(message)
         @broadcasters.each do |broadcaster|
-          Async do
-            broadcaster.broadcast(message)
-          end
+          broadcaster.broadcast(message)
+        rescue StandardError => e
+          Console.logger.error "[COMPOSITE] Broadcaster error: #{e.message}"
         end
       end
 

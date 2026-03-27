@@ -63,7 +63,7 @@ module WS2XX
     def validate!
       return unless @parsed_message.nil? || @parsed_message.empty?
 
-      add_error('Message is empty')      
+      add_error('Message is empty')
     end
 
     def from_json(json_str)
@@ -76,9 +76,8 @@ module WS2XX
     def extract_payload(data)
       message = data['Message']
       return data if message.nil?
-      return message.each_value.first
 
-      nil
+      message.each_value.first
     end
   end
 end
