@@ -17,16 +17,14 @@ module WS2XX
       end
 
       def broadcast(message)
-        Async do
-          ensure_socket!
+        ensure_socket!
 
-          @socket.write(message)
-          Console.logger.info "[TCP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
-        rescue StandardError => e
-          Console.logger.error "[TCP] Error sending message: #{e.message}"
-          @socket&.close
-          @socket = nil
-        end
+        @socket.write(message)
+        Console.logger.info "[TCP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
+      rescue StandardError => e
+        Console.logger.error "[TCP] Error sending message: #{e.message}"
+        @socket&.close
+        @socket = nil
       end
 
       def close

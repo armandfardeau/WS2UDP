@@ -17,13 +17,11 @@ module WS2XX
       end
 
       def broadcast(message)
-        Async do
-          @socket.send(message,0, @remote_host, @remote_port)
-          Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
-        rescue StandardError => e
-          Console.logger.error "[UDP] Error sending message: #{e.message}"
-          close
-        end
+        @socket.send(message, 0, @remote_host, @remote_port)
+        Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
+      rescue StandardError => e
+        Console.logger.error "[UDP] Error sending message: #{e.message}"
+        close
       end
 
       def close
