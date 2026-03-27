@@ -25,6 +25,9 @@ describe WS2XX::WebSocketClient do
       mock_message = double('message')
       allow(mock_message).to receive(:to_str).and_return('{"test": "message"}')
 
+      mock_parsed = double('parsed', valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}')
+      allow(WS2XX::Message).to receive(:parse).and_return(mock_parsed)
+
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
       allow(mock_connection).to receive(:write)
       allow(mock_connection).to receive(:read).and_return(mock_message, nil)
@@ -79,6 +82,9 @@ describe WS2XX::WebSocketClient do
       message2 = double('message2')
       allow(message1).to receive(:to_str).and_return('{"data": "msg1"}')
       allow(message2).to receive(:to_str).and_return('{"data": "msg2"}')
+
+      mock_parsed = double('parsed', valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}')
+      allow(WS2XX::Message).to receive(:parse).and_return(mock_parsed)
 
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
       allow(mock_connection).to receive(:write)

@@ -36,7 +36,6 @@ describe WS2XX::Broadcasters::UDP do
     it 'creates a UDP socket and sends message' do
       mock_socket = double('UDPSocket')
       allow(UDPSocket).to receive(:new).and_return(mock_socket)
-      allow(mock_socket).to receive(:connect)
       allow(mock_socket).to receive(:send).and_return(10)
 
       Async do
@@ -44,8 +43,7 @@ describe WS2XX::Broadcasters::UDP do
       end
 
       expect(UDPSocket).to have_received(:new)
-      expect(mock_socket).to have_received(:connect).with(host, port)
-      expect(mock_socket).to have_received(:send).with('test message', 0)
+      expect(mock_socket).to have_received(:send).with('test message', 0, host, port)
     end
 
     it 'reuses socket on subsequent broadcasts' do
@@ -66,19 +64,14 @@ describe WS2XX::Broadcasters::UDP do
     it 'handles socket creation errors gracefully' do
       allow(UDPSocket).to receive(:new).and_raise(StandardError.new('Connection failed'))
 
-      Async do
-        broadcaster.broadcast('test')
-      end
-
-      # Error is logged, not raised in Async
-      # Verify socket was not set
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect { described_class.new(host, port) }.to raise_error(StandardError, 'Connection failed')
     end
 
     it 'handles send errors and clears socket' do
       mock_socket = double('UDPSocket')
       allow(UDPSocket).to receive(:new).and_return(mock_socket)
       allow(mock_socket).to receive(:connect)
+      allow(mock_socket).to receive(:close)
       allow(mock_socket).to receive(:send).and_raise(StandardError.new('Send failed'))
 
       Async do
