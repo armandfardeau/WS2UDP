@@ -73,12 +73,10 @@ module WS2XX
       nil
     end
 
-    # Accept both AIS stream format (`{"Message": {"Type": {...}}}`)
-    # and plain payload hashes used by tests/integrations.
     def extract_payload(data)
       message = data['Message']
       return data if message.nil?
-      return message.each_value.first if message.respond_to?(:each_value)
+      return message.each_value.first
 
       nil
     end
