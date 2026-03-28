@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'socket'
+require 'io/endpoint'
 require_relative 'base'
 
 module WS2XX
@@ -13,14 +13,14 @@ module WS2XX
         super()
         @remote_host = remote_host
         @remote_port = remote_port.to_i
-        @socket = nil
+        @endpoint = nil
       end
 
       def broadcast(message)
-        socket = ensure_socket!
-        raise 'UDP socket is not available' if socket.nil?
-
-        socket.send(message, 0, @remote_host, @remote_port)
+        endpoint = ensure_endpoint!
+        endpoint.connect do |socket|
+          socket.write(message)
+        end
         Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
       rescue StandardError => e
         Console.logger.error "[UDP] Error sending message: #{e.message}"
@@ -28,14 +28,15 @@ module WS2XX
       end
 
       def close
-        @socket&.close
-        @socket = nil
+        endpoint = @endpoint
+        @endpoint = nil
+        endpoint&.close if endpoint.respond_to?(:close)
       end
 
       private
 
-      def ensure_socket!
-        @ensure_socket ||= UDPSocket.new
+      def ensure_endpoint!
+        @endpoint ||= IO::Endpoint.udp(@remote_host, @remote_port)
       end
     end
   end

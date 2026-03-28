@@ -125,6 +125,7 @@ DEPENDENCIES
   async-rspec
   async-websocket
   bundler (~> 2.0)
+  io-endpoint (~> 0.17)
   rspec (~> 3.12)
   rubocop
   rubocop-rspec

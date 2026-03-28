@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'socket'
+require 'io/endpoint'
 require_relative 'base'
 
 module WS2XX
@@ -13,37 +13,30 @@ module WS2XX
         super()
         @remote_host = remote_host
         @remote_port = remote_port.to_i
-        @socket = nil
+        @endpoint = nil
       end
 
       def broadcast(message)
-        ensure_socket!
-
-        @socket.write(message)
+        endpoint = ensure_endpoint!
+        endpoint.connect do |socket|
+          socket.write(message)
+        end
         Console.logger.info "[TCP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
       rescue StandardError => e
         Console.logger.error "[TCP] Error sending message: #{e.message}"
-        @socket&.close
-        @socket = nil
+        close
       end
 
       def close
-        @socket&.close
-        @socket = nil
+        endpoint = @endpoint
+        @endpoint = nil
+        endpoint&.close if endpoint.respond_to?(:close)
       end
 
       private
 
-      def ensure_socket!
-        return if @socket
-
-        begin
-          @socket = TCPSocket.new(@remote_host, @remote_port)
-          Console.logger.info "[TCP] Connected to #{@remote_host}:#{@remote_port}"
-        rescue StandardError => e
-          Console.logger.error "[TCP] Connection error: #{e.message}"
-          raise
-        end
+      def ensure_endpoint!
+        @endpoint ||= IO::Endpoint.tcp(@remote_host, @remote_port)
       end
     end
   end

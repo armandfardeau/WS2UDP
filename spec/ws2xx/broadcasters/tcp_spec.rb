@@ -33,22 +33,27 @@ describe WS2XX::Broadcasters::TCP do
   end
 
   describe '#broadcast' do
-    it 'creates a TCP socket and sends message' do
-      mock_socket = double('TCPSocket')
-      allow(TCPSocket).to receive(:new).and_return(mock_socket)
+    it 'creates a TCP endpoint and sends message' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      mock_socket = double('Socket')
+      allow(IO::Endpoint).to receive(:tcp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_yield(mock_socket)
       allow(mock_socket).to receive(:write).and_return(10)
 
       Async do
         broadcaster.broadcast('test message')
       end
 
-      expect(TCPSocket).to have_received(:new).with(host, port)
+      expect(IO::Endpoint).to have_received(:tcp).with(host, port)
+      expect(mock_endpoint).to have_received(:connect)
       expect(mock_socket).to have_received(:write).with('test message')
     end
 
-    it 'reuses socket on subsequent broadcasts' do
-      mock_socket = double('TCPSocket')
-      allow(TCPSocket).to receive(:new).and_return(mock_socket)
+    it 'reuses endpoint on subsequent broadcasts' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      mock_socket = double('Socket')
+      allow(IO::Endpoint).to receive(:tcp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_yield(mock_socket)
       allow(mock_socket).to receive(:write).and_return(10)
 
       Async do
@@ -56,47 +61,48 @@ describe WS2XX::Broadcasters::TCP do
         broadcaster.broadcast('second')
       end
 
-      expect(TCPSocket).to have_received(:new).once
+      expect(IO::Endpoint).to have_received(:tcp).once
+      expect(mock_endpoint).to have_received(:connect).twice
       expect(mock_socket).to have_received(:write).twice
     end
 
-    it 'handles socket creation errors gracefully' do
-      allow(TCPSocket).to receive(:new).and_raise(StandardError.new('Connection failed'))
+    it 'handles endpoint creation errors gracefully' do
+      allow(IO::Endpoint).to receive(:tcp).and_raise(StandardError.new('Connection failed'))
 
       Async do
         broadcaster.broadcast('test')
       end
 
-      # Error is logged, not raised in Async
-      # Verify socket was not set
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
 
-    it 'handles send errors and clears socket' do
-      mock_socket = double('TCPSocket')
-      allow(TCPSocket).to receive(:new).and_return(mock_socket)
-      allow(mock_socket).to receive(:write).and_raise(StandardError.new('Write failed'))
-      allow(mock_socket).to receive(:close)
+    it 'handles send errors and clears endpoint' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      allow(IO::Endpoint).to receive(:tcp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_raise(StandardError.new('Write failed'))
+      allow(mock_endpoint).to receive(:respond_to?).with(:close).and_return(true)
+      allow(mock_endpoint).to receive(:close)
 
       Async do
         broadcaster.broadcast('test')
       end
 
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
   end
 
   describe '#close' do
-    it 'closes the socket' do
-      mock_socket = double('TCPSocket')
-      broadcaster.instance_variable_set(:@socket, mock_socket)
-      expect(mock_socket).to receive(:close)
+    it 'closes the endpoint when it supports close' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      broadcaster.instance_variable_set(:@endpoint, mock_endpoint)
+      allow(mock_endpoint).to receive(:respond_to?).with(:close).and_return(true)
+      expect(mock_endpoint).to receive(:close)
 
       broadcaster.close
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
 
-    it 'does not raise error if socket is nil' do
+    it 'does not raise error if endpoint is nil' do
       expect { broadcaster.close }.not_to raise_error
     end
   end

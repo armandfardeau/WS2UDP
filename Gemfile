@@ -5,6 +5,7 @@ source 'https://rubygems.org'
 gem 'ais_to_nmea', github: 'armandfardeau/AIS_JSON2NMEA'
 gem 'async', '~> 2.1'
 gem 'async-websocket'
+gem 'io-endpoint', '~> 0.17'
 
 group :development, :test do
   gem 'async-rspec'

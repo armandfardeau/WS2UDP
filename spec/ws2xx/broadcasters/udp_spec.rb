@@ -33,71 +33,76 @@ describe WS2XX::Broadcasters::UDP do
   end
 
   describe '#broadcast' do
-    it 'creates a UDP socket and sends message' do
-      mock_socket = double('UDPSocket')
-      allow(UDPSocket).to receive(:new).and_return(mock_socket)
-      allow(mock_socket).to receive(:send).and_return(10)
+    it 'creates a UDP endpoint and sends message' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      mock_socket = double('Socket')
+      allow(IO::Endpoint).to receive(:udp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_yield(mock_socket)
+      allow(mock_socket).to receive(:write).and_return(10)
 
       Async do
         broadcaster.broadcast('test message')
       end
 
-      expect(UDPSocket).to have_received(:new)
-      expect(mock_socket).to have_received(:send).with('test message', 0, host, port)
+      expect(IO::Endpoint).to have_received(:udp).with(host, port)
+      expect(mock_endpoint).to have_received(:connect)
+      expect(mock_socket).to have_received(:write).with('test message')
     end
 
-    it 'reuses socket on subsequent broadcasts' do
-      mock_socket = double('UDPSocket')
-      allow(UDPSocket).to receive(:new).and_return(mock_socket)
-      allow(mock_socket).to receive(:connect)
-      allow(mock_socket).to receive(:send).and_return(10)
+    it 'reuses endpoint on subsequent broadcasts' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      mock_socket = double('Socket')
+      allow(IO::Endpoint).to receive(:udp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_yield(mock_socket)
+      allow(mock_socket).to receive(:write).and_return(10)
 
       Async do
         broadcaster.broadcast('first')
         broadcaster.broadcast('second')
       end
 
-      expect(UDPSocket).to have_received(:new).once
-      expect(mock_socket).to have_received(:send).twice
+      expect(IO::Endpoint).to have_received(:udp).once
+      expect(mock_endpoint).to have_received(:connect).twice
+      expect(mock_socket).to have_received(:write).twice
     end
 
-    it 'handles socket creation errors gracefully' do
-      allow(UDPSocket).to receive(:new).and_raise(StandardError.new('Connection failed'))
+    it 'handles endpoint creation errors gracefully' do
+      allow(IO::Endpoint).to receive(:udp).and_raise(StandardError.new('Connection failed'))
 
       Async do
         broadcaster.broadcast('test')
       end
 
-      # Error is caught and socket is cleared
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
 
-    it 'handles send errors and clears socket' do
-      mock_socket = double('UDPSocket')
-      allow(UDPSocket).to receive(:new).and_return(mock_socket)
-      allow(mock_socket).to receive(:connect)
-      allow(mock_socket).to receive(:close)
-      allow(mock_socket).to receive(:send).and_raise(StandardError.new('Send failed'))
+    it 'handles send errors and clears endpoint' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      allow(IO::Endpoint).to receive(:udp).with(host, port).and_return(mock_endpoint)
+      allow(mock_endpoint).to receive(:connect).and_raise(StandardError.new('Send failed'))
+      allow(mock_endpoint).to receive(:respond_to?).with(:close).and_return(true)
+      allow(mock_endpoint).to receive(:close)
 
       Async do
         broadcaster.broadcast('test')
       end
 
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
   end
 
   describe '#close' do
-    it 'closes the socket' do
-      mock_socket = double('UDPSocket')
-      broadcaster.instance_variable_set(:@socket, mock_socket)
-      expect(mock_socket).to receive(:close)
+    it 'closes the endpoint when it supports close' do
+      mock_endpoint = double('IO::Endpoint::HostEndpoint')
+      broadcaster.instance_variable_set(:@endpoint, mock_endpoint)
+      allow(mock_endpoint).to receive(:respond_to?).with(:close).and_return(true)
+      expect(mock_endpoint).to receive(:close)
 
       broadcaster.close
-      expect(broadcaster.instance_variable_get(:@socket)).to be_nil
+      expect(broadcaster.instance_variable_get(:@endpoint)).to be_nil
     end
 
-    it 'does not raise error if socket is nil' do
+    it 'does not raise error if endpoint is nil' do
       expect { broadcaster.close }.not_to raise_error
     end
   end
