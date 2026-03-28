@@ -14,6 +14,7 @@ module WS2XX
         url: @config[:ws_url],
         api_key: @config[:ws_api_key],
         retry_attempts: @config.fetch(:retry_attempts, 3),
+        reconnect_on_error: @config.fetch(:reconnect_on_error, false),
         options: @config.slice(:bounding_boxes, :filter_message_types, :filters_ship_mmsis)
       )
       @broadcaster_builder = Broadcasters::Builder.new

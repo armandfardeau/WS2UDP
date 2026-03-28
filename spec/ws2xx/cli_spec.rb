@@ -11,6 +11,7 @@ describe WS2XX::CLI do
                                   ws_url: nil,
                                   ws_api_key: nil,
                                   destinations: [],
+                                  reconnect_on_error: false,
                                   filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
                                   filters_ship_mmsis: []
                                 })
@@ -106,6 +107,12 @@ describe WS2XX::CLI do
         expect(cli.options[:ws_api_key]).to eq('my-key')
         expect(cli.options[:bounding_boxes]).to eq([[[40.7, -74.0, 40.8, -73.9]]])
         expect(cli.options[:destinations].size).to eq(2)
+      end
+
+      it 'parses --reconnect-on-error' do
+        cli.parse(['--reconnect-on-error'])
+
+        expect(cli.options[:reconnect_on_error]).to be(true)
       end
     end
   end

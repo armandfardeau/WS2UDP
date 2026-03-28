@@ -9,22 +9,41 @@ require_relative 'message'
 module WS2XX
   # WebSocket client: connects to WS server, subscribes to messages, and broadcasts them
   class WebSocketClient
-    def initialize(url:, api_key:, retry_attempts: 3, options: {})
+    def initialize(url:, api_key:, retry_attempts: 3, reconnect_on_error: false, options: {})
       @url = url
       @api_key = api_key
       @retry_attempts = retry_attempts
+      @reconnect_on_error = reconnect_on_error
       @options = options
     end
 
     def run(broadcaster)
       Async do
-        Console.logger.info "[WS CLIENT] Connecting to #{@url}..."
-        stream_messages(broadcaster)
-      rescue EOFError => e
-        Console.logger.warn "[WS CLIENT] Connection closed by server: #{e.message}"
-      rescue StandardError => e
-        Console.logger.error "[WS CLIENT] Error: #{e.class} - #{e.message}"
-        raise
+        loop do
+          begin
+            Console.logger.info "[WS CLIENT] Connecting to #{@url}..."
+            stream_messages(broadcaster)
+
+            break unless @reconnect_on_error
+
+            Console.logger.warn '[WS CLIENT] Stream ended, reconnecting...'
+          rescue EOFError => e
+            break unless @reconnect_on_error
+
+            Console.logger.warn "[WS CLIENT] Connection closed by server: #{e.message}. Reconnecting..."
+          rescue StandardError => e
+            if @reconnect_on_error
+              Console.logger.warn "[WS CLIENT] Error: #{e.class} - #{e.message}. Reconnecting..."
+            else
+              Console.logger.error "[WS CLIENT] Error: #{e.class} - #{e.message}"
+              raise
+            end
+          end
+
+          next unless @reconnect_on_error
+
+          Async::Task.current.sleep(1)
+        end
       end
     end
 

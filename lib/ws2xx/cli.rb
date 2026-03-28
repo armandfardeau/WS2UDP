@@ -12,6 +12,7 @@ module WS2XX
         ws_url: nil,
         ws_api_key: nil,
         destinations: [],
+        reconnect_on_error: false,
         filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
         filters_ship_mmsis: []
       }
@@ -132,6 +133,13 @@ module WS2XX
 
       opts.on('--mmsis MMSIS', String, 'Comma-separated list of ship MMSIs to filter (default: [])') do |mmsis|
         @options[:filters_ship_mmsis] = mmsis.split(',').map(&:strip)
+      end
+
+      opts.on(
+        '--reconnect-on-error',
+        'Reconnect indefinitely when WebSocket errors occur'
+      ) do
+        @options[:reconnect_on_error] = true
       end
 
       opts.separator ''

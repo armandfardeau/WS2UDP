@@ -14,6 +14,7 @@ describe WS2XX::WebSocketClient do
       expect(client.instance_variable_get(:@url)).to eq(url)
       expect(client.instance_variable_get(:@api_key)).to eq(api_key)
       expect(client.instance_variable_get(:@options)).to eq(options)
+      expect(client.instance_variable_get(:@reconnect_on_error)).to be(false)
     end
   end
 
@@ -75,6 +76,31 @@ describe WS2XX::WebSocketClient do
 
       # Error is logged and raised from the Async block
       # The test passes if no exception is raised at the test level
+    end
+
+    it 'reconnects indefinitely on errors when reconnect_on_error is true' do
+      reconnect_client = described_class.new(
+        url: url,
+        api_key: api_key,
+        reconnect_on_error: true,
+        options: options
+      )
+
+      allow(Async::Task).to receive_message_chain(:current, :sleep)
+
+      call_count = 0
+      allow(reconnect_client).to receive(:stream_messages) do
+        call_count += 1
+        if call_count == 1
+          raise StandardError, 'temporary failure'
+        end
+
+        reconnect_client.instance_variable_set(:@reconnect_on_error, false)
+      end
+
+      reconnect_client.run(broadcaster).wait
+
+      expect(reconnect_client).to have_received(:stream_messages).twice
     end
 
     it 'broadcasts each message received' do

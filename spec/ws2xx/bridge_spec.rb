@@ -16,6 +16,18 @@ describe WS2XX::Bridge do
   end
 
   describe '#initialize' do
+    it 'forwards reconnect_on_error to WebSocketClient' do
+      expect(WS2XX::WebSocketClient).to receive(:new).with(
+        hash_including(
+          url: config[:ws_url],
+          api_key: config[:ws_api_key],
+          reconnect_on_error: false
+        )
+      ).and_call_original
+
+      described_class.new(config)
+    end
+
     it 'creates a WebSocketClient with config' do
       expect(bridge.instance_variable_get(:@ws_client))
         .to be_instance_of(WS2XX::WebSocketClient)
