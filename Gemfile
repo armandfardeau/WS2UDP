@@ -14,3 +14,5 @@ group :development, :test do
   gem 'rubocop'
   gem 'rubocop-rspec'
 end
+
+gem "overcommit", "~> 0.68.0", group: :development
