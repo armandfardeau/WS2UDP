@@ -4,6 +4,7 @@ require 'optparse'
 
 module WS2XX
   # CLI argument parser for WS2XX bridge
+  # rubocop:disable Metrics/ClassLength
   class CLI
     attr_reader :options
 
@@ -140,5 +141,6 @@ module WS2XX
 
       opts.separator ''
     end
+    # rubocop:enable Metrics/ClassLength
   end
 end

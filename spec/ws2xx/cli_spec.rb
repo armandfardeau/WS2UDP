@@ -6,15 +6,19 @@ describe WS2XX::CLI, :aggregate_failures do
   subject(:cli) { described_class.new }
 
   describe '#initialize' do
+    let(:expected_defaults) do
+      {
+        ws_url: nil,
+        ws_api_key: nil,
+        destinations: [],
+        reconnect_on_error: false,
+        filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
+        filters_ship_mmsis: []
+      }
+    end
+
     it 'sets default options' do
-      expect(cli.options).to eq({
-                                  ws_url: nil,
-                                  ws_api_key: nil,
-                                  destinations: [],
-                                  reconnect_on_error: false,
-                                  filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
-                                  filters_ship_mmsis: []
-                                })
+      expect(cli.options).to eq(expected_defaults)
     end
   end
 
@@ -53,30 +57,16 @@ describe WS2XX::CLI, :aggregate_failures do
     context 'when destination configuration is provided' do
       it 'parses single UDP destination' do
         cli.parse(['--destination', 'udp://127.0.0.1:5000'])
-
-        expect(cli.options[:destinations]).to include({
-                                                        type: 'udp',
-                                                        host: '127.0.0.1',
-                                                        port: 5000
-                                                      })
+        expect(cli.options[:destinations]).to include(type: 'udp', host: '127.0.0.1', port: 5000)
       end
 
       it 'parses single TCP destination' do
         cli.parse(['--destination', 'tcp://192.168.1.1:6000'])
-
-        expect(cli.options[:destinations]).to include({
-                                                        type: 'tcp',
-                                                        host: '192.168.1.1',
-                                                        port: 6000
-                                                      })
+        expect(cli.options[:destinations]).to include(type: 'tcp', host: '192.168.1.1', port: 6000)
       end
 
       it 'parses multiple destinations' do
-        cli.parse([
-                    '--destination', 'udp://127.0.0.1:5000',
-                    '--destination', 'tcp://192.168.1.1:6000'
-                  ])
-
+        cli.parse(['--destination', 'udp://127.0.0.1:5000', '--destination', 'tcp://192.168.1.1:6000'])
         expect(cli.options[:destinations].size).to eq(2)
         expect(cli.options[:destinations][0]).to include(type: 'udp')
         expect(cli.options[:destinations][1]).to include(type: 'tcp')
@@ -84,25 +74,23 @@ describe WS2XX::CLI, :aggregate_failures do
 
       it 'parses destination with hostname' do
         cli.parse(['--destination', 'udp://example.com:5000'])
-
-        expect(cli.options[:destinations]).to include({
-                                                        type: 'udp',
-                                                        host: 'example.com',
-                                                        port: 5000
-                                                      })
+        expect(cli.options[:destinations]).to include(type: 'udp', host: 'example.com', port: 5000)
       end
     end
 
     context 'when option combinations are provided' do
-      it 'parses all WebSocket and destination options together' do
-        cli.parse([
-                    '--ws-url', 'wss://example.com/stream',
-                    '--ws-api-key', 'my-key',
-                    '--ws-bounding-boxes', '40.7,-74.0,40.8,-73.9',
-                    '--destination', 'udp://127.0.0.1:5000',
-                    '--destination', 'tcp://192.168.1.1:6000'
-                  ])
+      let(:all_options_args) do
+        [
+          '--ws-url', 'wss://example.com/stream',
+          '--ws-api-key', 'my-key',
+          '--ws-bounding-boxes', '40.7,-74.0,40.8,-73.9',
+          '--destination', 'udp://127.0.0.1:5000',
+          '--destination', 'tcp://192.168.1.1:6000'
+        ]
+      end
 
+      it 'parses all WebSocket and destination options together' do
+        cli.parse(all_options_args)
         expect(cli.options[:ws_url]).to eq('wss://example.com/stream')
         expect(cli.options[:ws_api_key]).to eq('my-key')
         expect(cli.options[:bounding_boxes]).to eq([[[40.7, -74.0, 40.8, -73.9]]])
@@ -111,7 +99,6 @@ describe WS2XX::CLI, :aggregate_failures do
 
       it 'parses --reconnect-on-error' do
         cli.parse(['--reconnect-on-error'])
-
         expect(cli.options[:reconnect_on_error]).to be(true)
       end
     end
@@ -181,14 +168,8 @@ describe WS2XX::CLI, :aggregate_failures do
 
     context 'when configurations are invalid' do
       it 'raises error if no destinations and no WebSocket' do
-        cli.instance_variable_set(:@options, {
-                                    destinations: [],
-                                    ws_enabled: false
-                                  })
-
-        expect { cli.validate! }.to raise_error(
-          'At least one destination or WebSocket destination must be configured'
-        )
+        cli.instance_variable_set(:@options, { destinations: [], ws_enabled: false })
+        expect { cli.validate! }.to raise_error('At least one destination or WebSocket destination must be configured')
       end
     end
   end
