@@ -15,15 +15,11 @@
 #
 # Uncomment the following lines to make the configuration take effect.
 
-#PreCommit:
-#  RuboCop:
-#    enabled: true
-#    on_warn: fail # Treat all warnings as failures
-#
-#  TrailingWhitespace:
-#    enabled: true
-#    exclude:
-#      - '**/db/structure.sql' # Ignore trailing whitespace in generated files
+PreCommit:
+  RuboCop:
+    enabled: true
+    on_warn: fail
+    command: ['bundle', 'exec', 'rubocop']
 #
 #PostCheckout:
 #  ALL: # Special hook name that customizes all hooks of this type
