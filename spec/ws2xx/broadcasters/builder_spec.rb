@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ws2xx/broadcasters/builder'
 
-describe WS2XX::Broadcasters::Builder do
+describe WS2XX::Broadcasters::Builder, :aggregate_failures do
   subject(:builder) { described_class.new }
 
   describe '#build' do

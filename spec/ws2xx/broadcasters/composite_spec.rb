@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ws2xx/broadcasters/composite'
 
-describe WS2XX::Broadcasters::Composite do
+describe WS2XX::Broadcasters::Composite, :aggregate_failures do
   subject(:composite) { described_class.new }
 
   describe '#initialize' do

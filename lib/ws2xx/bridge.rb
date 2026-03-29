@@ -40,7 +40,7 @@ module WS2XX
     # Run the bridge (blocks until shutdown)
     def run
       Async do
-      @ws_client.run(@broadcaster)
+        @ws_client.run(@broadcaster)
       end
     ensure
       shutdown
@@ -60,12 +60,10 @@ module WS2XX
       if !!ENV['WS2XX_DEBUG']
         Console.logger.info '[BRIDGE] Starting in debug mode...'
         Sync do
-	
- Async::Debug.serve
+          Async::Debug.serve
 
- block.call
-        Console.logger.info '[BRIDGE] Debug session ended.'
-
+          block.call
+          Console.logger.info '[BRIDGE] Debug session ended.'
         end
       else
         block.call

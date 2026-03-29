@@ -23,7 +23,6 @@ module WS2XX
       self
     end
 
-    # rubocop:disable Metrics/MethodLength
     def parser
       @parser ||= OptionParser.new do |opts|
         opts.banner = 'Usage: ws2xx [options]'
@@ -46,7 +45,6 @@ module WS2XX
         end
       end
     end
-    # rubocop:enable Metrics/MethodLength
 
     def validate!
       if @options[:destinations].empty? && !@options[:ws_enabled]
@@ -66,7 +64,6 @@ module WS2XX
 
     private
 
-    # rubocop:disable Metrics/MethodLength
     def parse_ws_configuration(opts)
       opts.separator 'WebSocket Configuration:'
 
@@ -92,7 +89,6 @@ module WS2XX
 
       opts.separator ''
     end
-    # rubocop:enable Metrics/MethodLength
 
     def parse_destination_configuration(opts)
       opts.separator 'Destination Configuration (can be used multiple times):'

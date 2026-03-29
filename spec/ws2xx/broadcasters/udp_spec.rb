@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ws2xx/broadcasters/udp'
 
-describe WS2XX::Broadcasters::UDP do
+describe WS2XX::Broadcasters::UDP, :aggregate_failures do
   subject(:broadcaster) { described_class.new(host, port) }
 
   let(:host) { '127.0.0.1' }

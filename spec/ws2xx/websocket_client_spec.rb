@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe WS2XX::WebSocketClient do
+describe WS2XX::WebSocketClient, :aggregate_failures do
   subject(:client) { described_class.new(url: url, api_key: api_key, options: options) }
 
   let(:url) { 'wss://example.com/stream' }
@@ -91,14 +91,12 @@ describe WS2XX::WebSocketClient do
       call_count = 0
       allow(reconnect_client).to receive(:stream_messages) do
         call_count += 1
-        if call_count == 1
-          raise StandardError, 'temporary failure'
-        end
+        raise StandardError, 'temporary failure' if call_count == 1
 
         reconnect_client.instance_variable_set(:@reconnect_on_error, false)
       end
 
-      reconnect_client.run(broadcaster).wait
+      reconnect_client.run(broadcaster)
 
       expect(reconnect_client).to have_received(:stream_messages).twice
     end

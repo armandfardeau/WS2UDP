@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe WS2XX::CLI do
+describe WS2XX::CLI, :aggregate_failures do
   subject(:cli) { described_class.new }
 
   describe '#initialize' do

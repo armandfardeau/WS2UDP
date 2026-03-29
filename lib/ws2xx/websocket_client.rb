@@ -4,7 +4,7 @@ require 'async'
 require 'async/http/endpoint'
 require 'async/websocket/client'
 require 'json'
-require "async/debug"
+require 'async/debug'
 
 require_relative 'message'
 module WS2XX
@@ -19,32 +19,32 @@ module WS2XX
     end
 
     def run(broadcaster)
-        loop do
-          begin
-            Console.logger.info "[WS CLIENT] Connecting to #{@url}..."
-            stream_messages(broadcaster)
+      loop do
+        begin
+          Console.logger.info "[WS CLIENT] Connecting to #{@url}..."
+          stream_messages(broadcaster)
 
-            break unless @reconnect_on_error
+          break unless @reconnect_on_error
 
-            Console.logger.warn '[WS CLIENT] Stream ended, reconnecting...'
-          rescue EOFError => e
-            break unless @reconnect_on_error
+          Console.logger.warn '[WS CLIENT] Stream ended, reconnecting...'
+        rescue EOFError => e
+          break unless @reconnect_on_error
 
-            Console.logger.warn "[WS CLIENT] Connection closed by server: #{e.message}. Reconnecting..."
-          rescue StandardError => e
-            if @reconnect_on_error
-              Console.logger.warn "[WS CLIENT] Error: #{e.class} - #{e.message}. Reconnecting..."
-            else
-              Console.logger.error "[WS CLIENT] Error: #{e.class} - #{e.message}"
-              raise
-            end
+          Console.logger.warn "[WS CLIENT] Connection closed by server: #{e.message}. Reconnecting..."
+        rescue StandardError => e
+          if @reconnect_on_error
+            Console.logger.warn "[WS CLIENT] Error: #{e.class} - #{e.message}. Reconnecting..."
+          else
+            Console.logger.error "[WS CLIENT] Error: #{e.class} - #{e.message}"
+            raise
           end
-
-          next unless @reconnect_on_error
-
-          Async::Task.current.sleep(1)
         end
+
+        next unless @reconnect_on_error
+
+        Async::Task.current.sleep(1)
       end
+    end
 
     private
 

@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'ws2xx/broadcasters/tcp'
 
-describe WS2XX::Broadcasters::TCP do
+describe WS2XX::Broadcasters::TCP, :aggregate_failures do
   subject(:broadcaster) { described_class.new(host, port) }
 
   let(:host) { '127.0.0.1' }

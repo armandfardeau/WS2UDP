@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-describe WS2XX::Bridge do
+describe WS2XX::Bridge, :aggregate_failures do
   subject(:bridge) { described_class.new(config) }
 
   let(:config) do

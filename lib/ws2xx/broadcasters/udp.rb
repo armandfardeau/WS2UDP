@@ -21,7 +21,7 @@ module WS2XX
         endpoint.connect do |socket|
           socket.write(message)
         end
-        Console.logger.info "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
+        Console.logger.debug "[UDP] Sent #{message.bytesize} bytes to #{@remote_host}:#{@remote_port}"
       rescue StandardError => e
         Console.logger.error "[UDP] Error sending message: #{e.message}"
         close
@@ -36,7 +36,7 @@ module WS2XX
       private
 
       def ensure_endpoint!
-        @endpoint ||= IO::Endpoint.udp(@remote_host, @remote_port)
+        @ensure_endpoint ||= IO::Endpoint.udp(@remote_host, @remote_port)
       end
     end
   end

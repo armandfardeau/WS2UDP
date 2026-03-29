@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 plugins:
   - rubocop-rspec
 
@@ -8,26 +10,7 @@ Style/OneClassPerFile:
   Exclude:
     - spec/spec_helper.rb
 
-RSpec/AnyInstance:
-  Enabled: false
-
-RSpec/ContextWording:
-  Enabled: false
-
-RSpec/ExampleLength:
-  Enabled: false
-
-RSpec/MessageSpies:
-  Enabled: false
-
-RSpec/MultipleExpectations:
-  Enabled: false
-
-RSpec/NoExpectationExample:
-  Enabled: false
-
 RSpec/SpecFilePathFormat:
-  Enabled: false
-
-RSpec/VerifiedDoubles:
-  Enabled: false
+  CustomTransform:
+    WS2XX: ws2xx
+    WebSocketClient: websocket_client
