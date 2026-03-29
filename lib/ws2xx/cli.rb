@@ -14,7 +14,7 @@ module WS2XX
         ws_api_key: nil,
         destinations: [],
         reconnect_on_error: false,
-        filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage],
+        filter_message_types: %w[PositionReport ShipStaticData SafetyBroadcastMessage BaseStationReport],
         filters_ship_mmsis: []
       }
     end
@@ -122,7 +122,7 @@ module WS2XX
     def parse_options(opts)
       opts.separator 'Other options:'
       message_types_help = 'Comma-separated list of message types to filter '
-      message_types_help += '(default: PositionReport, ShipStaticData, SafetyBroadcastMessage)'
+      message_types_help += '(default: PositionReport, ShipStaticData, SafetyBroadcastMessage, BaseStationReport)'
 
       opts.on('--message-types TYPES', String, message_types_help) do |types|
         @options[:filter_message_types] = types.split(',').map(&:strip)
