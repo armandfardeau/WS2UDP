@@ -1,5 +1,7 @@
 # WS2XX Bridge
 
+**[Documentation](https://armandfardeau.github.io/WS2UDP/)**
+
 An asynchronous Ruby bridge that relays messages from a WebSocket server to any destination using pluggable strategies.
 
 ## Features
