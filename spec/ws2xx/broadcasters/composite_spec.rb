@@ -8,8 +8,8 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
 
   describe '#initialize' do
     it 'accepts optional array of broadcasters' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('broadcaster2')
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(WS2XX::Broadcasters::Base)
 
       composite = described_class.new([broadcaster1, broadcaster2])
       expect(composite.instance_variable_get(:@broadcasters)).to eq([broadcaster1, broadcaster2])
@@ -22,17 +22,17 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
 
   describe '#add_broadcaster' do
     it 'adds a broadcaster to the list' do
-      broadcaster = double('broadcaster')
+      broadcaster = instance_double(WS2XX::Broadcasters::Base)
 
       result = composite.add_broadcaster(broadcaster)
 
       expect(composite.instance_variable_get(:@broadcasters)).to include(broadcaster)
-      expect(result).to be(composite)  # returns self for chaining
+      expect(result).to be(composite) # returns self for chaining
     end
 
     it 'supports method chaining' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('broadcaster2')
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(WS2XX::Broadcasters::Base)
 
       result = composite
                .add_broadcaster(broadcaster1)
@@ -46,8 +46,8 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
 
   describe '#broadcast' do
     it 'broadcasts to all child broadcasters' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('broadcaster2')
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(WS2XX::Broadcasters::Base)
       allow(broadcaster1).to receive(:broadcast)
       allow(broadcaster2).to receive(:broadcast)
 
@@ -70,9 +70,9 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
     end
 
     it 'broadcasts to all broadcasters even if one errors' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('broadcaster2')
-      broadcaster3 = double('broadcaster3')
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster3 = instance_double(WS2XX::Broadcasters::Base)
       allow(broadcaster1).to receive(:broadcast)
       allow(broadcaster2).to receive(:broadcast).and_raise(StandardError, 'Error in 2')
       allow(broadcaster3).to receive(:broadcast)
@@ -91,8 +91,8 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
 
   describe '#close' do
     it 'closes all broadcasters' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('broadcaster2')
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(WS2XX::Broadcasters::Base)
       allow(broadcaster1).to receive(:close)
       allow(broadcaster2).to receive(:close)
 
@@ -104,8 +104,8 @@ describe WS2XX::Broadcasters::Composite, :aggregate_failures do
     end
 
     it 'only closes broadcasters that respond to close' do
-      broadcaster1 = double('broadcaster1')
-      broadcaster2 = double('object')  # doesn't respond to close
+      broadcaster1 = instance_double(WS2XX::Broadcasters::Base)
+      broadcaster2 = instance_double(String) # doesn't respond to close
       allow(broadcaster1).to receive(:close)
 
       composite.add_broadcaster(broadcaster1).add_broadcaster(broadcaster2)

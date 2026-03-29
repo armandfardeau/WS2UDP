@@ -26,46 +26,9 @@ RSpec/AnyInstance:
   Exclude:
     - 'spec/ws2xx/bridge_spec.rb'
 
-# Offense count: 7
-# Configuration parameters: Prefixes, AllowedPatterns.
-# Prefixes: when, with, without
-RSpec/ContextWording:
-  Exclude:
-    - 'spec/ws2xx/broadcasters/builder_spec.rb'
-    - 'spec/ws2xx/cli_spec.rb'
-
 # Offense count: 36
 # Configuration parameters: CountAsOne.
 RSpec/ExampleLength:
   Max: 15
 
-# Offense count: 1
-RSpec/MessageChain:
-  Exclude:
-    - 'spec/ws2xx/websocket_client_spec.rb'
 
-# Offense count: 3
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: have_received, receive
-RSpec/MessageSpies:
-  Exclude:
-    - 'spec/ws2xx/bridge_spec.rb'
-    - 'spec/ws2xx/broadcasters/tcp_spec.rb'
-    - 'spec/ws2xx/broadcasters/udp_spec.rb'
-
-# Offense count: 1
-# Configuration parameters: AllowedPatterns.
-# AllowedPatterns: ^expect_, ^assert_
-RSpec/NoExpectationExample:
-  Exclude:
-    - 'spec/ws2xx/websocket_client_spec.rb'
-
-# Offense count: 44
-# Configuration parameters: IgnoreNameless, IgnoreSymbolicNames.
-RSpec/VerifiedDoubles:
-  Exclude:
-    - 'spec/ws2xx/bridge_spec.rb'
-    - 'spec/ws2xx/broadcasters/composite_spec.rb'
-    - 'spec/ws2xx/broadcasters/tcp_spec.rb'
-    - 'spec/ws2xx/broadcasters/udp_spec.rb'
-    - 'spec/ws2xx/websocket_client_spec.rb'

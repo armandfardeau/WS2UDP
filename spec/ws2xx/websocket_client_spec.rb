@@ -19,14 +19,14 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
   end
 
   describe '#run' do
-    let(:broadcaster) { double('broadcaster') }
-    let(:mock_connection) { double('connection') }
+    let(:broadcaster) { instance_double(WS2XX::Broadcasters::Base) }
+    let(:mock_connection) { instance_double(Async::WebSocket::Connection) }
 
     it 'connects to the WebSocket endpoint and handles messages' do
-      mock_message = double('message')
-      allow(mock_message).to receive(:to_str).and_return('{"test": "message"}')
+      mock_message = instance_double(String, to_str: '{"test": "message"}')
 
-      mock_parsed = double('parsed', valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}')
+      mock_parsed = instance_double(WS2XX::Message, valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}',
+                                                    errors: [])
       allow(WS2XX::Message).to receive(:parse).and_return(mock_parsed)
 
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
@@ -70,12 +70,11 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
     it 're-raises other StandardErrors' do
       allow(Async::WebSocket::Client).to receive(:connect).and_raise(StandardError.new('Connection error'))
 
-      Async do
-        client.run(broadcaster)
-      end
-
-      # Error is logged and raised from the Async block
-      # The test passes if no exception is raised at the test level
+      expect do
+        Async do
+          client.run(broadcaster)
+        end
+      end.not_to raise_error
     end
 
     it 'reconnects indefinitely on errors when reconnect_on_error is true' do
@@ -86,7 +85,7 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
         options: options
       )
 
-      allow(Async::Task).to receive_message_chain(:current, :sleep)
+      allow(Async::Task).to receive(:current).and_return(instance_double(Async::Task, sleep: nil))
 
       call_count = 0
       allow(reconnect_client).to receive(:stream_messages) do
@@ -102,12 +101,11 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
     end
 
     it 'broadcasts each message received' do
-      message1 = double('message1')
-      message2 = double('message2')
-      allow(message1).to receive(:to_str).and_return('{"data": "msg1"}')
-      allow(message2).to receive(:to_str).and_return('{"data": "msg2"}')
+      message1 = instance_double(String, to_str: '{"data": "msg1"}')
+      message2 = instance_double(String, to_str: '{"data": "msg2"}')
 
-      mock_parsed = double('parsed', valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}')
+      mock_parsed = instance_double(WS2XX::Message, valid?: true, to_nmea: '!AIVDM,1,1,,A,test,0*00', to_json: '{}',
+                                                    errors: [])
       allow(WS2XX::Message).to receive(:parse).and_return(mock_parsed)
 
       allow(Async::WebSocket::Client).to receive(:connect).and_yield(mock_connection)
@@ -127,7 +125,7 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
     it 'creates an Async::HTTP::Endpoint from the URL' do
       allow(Async::HTTP::Endpoint).to receive(:parse)
         .with(url, alpn_protocols: Async::HTTP::Protocol::HTTP11.names)
-        .and_return(double('endpoint'))
+        .and_return(instance_double(Async::HTTP::Endpoint))
 
       client.send(:endpoint)
 
@@ -135,7 +133,7 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
     end
 
     it 'caches the endpoint' do
-      mock_endpoint = double('endpoint')
+      mock_endpoint = instance_double(Async::HTTP::Endpoint)
       allow(Async::HTTP::Endpoint).to receive(:parse).and_return(mock_endpoint)
 
       endpoint1 = client.send(:endpoint)
@@ -147,7 +145,7 @@ describe WS2XX::WebSocketClient, :aggregate_failures do
   end
 
   describe '#susbcribe_to_messages' do
-    let(:mock_connection) { spy('connection') }
+    let(:mock_connection) { instance_spy(Async::WebSocket::Connection) }
 
     it 'sends subscription message with API key and bounding boxes' do
       client.send(:susbcribe_to_messages, mock_connection)

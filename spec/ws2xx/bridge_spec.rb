@@ -17,15 +17,17 @@ describe WS2XX::Bridge, :aggregate_failures do
 
   describe '#initialize' do
     it 'forwards reconnect_on_error to WebSocketClient' do
-      expect(WS2XX::WebSocketClient).to receive(:new).with(
+      allow(WS2XX::WebSocketClient).to receive(:new).and_call_original
+
+      described_class.new(config)
+
+      expect(WS2XX::WebSocketClient).to have_received(:new).with(
         hash_including(
           url: config[:ws_url],
           api_key: config[:ws_api_key],
           reconnect_on_error: false
         )
-      ).and_call_original
-
-      described_class.new(config)
+      )
     end
 
     it 'creates a WebSocketClient with config' do
@@ -54,7 +56,7 @@ describe WS2XX::Bridge, :aggregate_failures do
   describe '#setup_components' do
     it 'builds broadcaster from config destinations' do
       builder = bridge.instance_variable_get(:@broadcaster_builder)
-      allow(builder).to receive(:build).and_return(double('broadcaster'))
+      allow(builder).to receive(:build).and_return(instance_double(WS2XX::Broadcasters::Base))
 
       bridge.setup_components
 
@@ -64,12 +66,12 @@ describe WS2XX::Bridge, :aggregate_failures do
   end
 
   describe '#run' do
-    let(:mock_broadcaster) { double('broadcaster') }
+    let(:mock_broadcaster) { instance_double(WS2XX::Broadcasters::Base) }
     let(:mock_ws_client) { bridge.instance_variable_get(:@ws_client) }
 
     it 'runs WebSocketClient within Async block' do
       allow(mock_ws_client).to receive(:run)
-      mock_broadcaster = spy('broadcaster')
+      mock_broadcaster = instance_spy(WS2XX::Broadcasters::Base)
       bridge.instance_variable_set(:@broadcaster, mock_broadcaster)
 
       Async do
@@ -81,7 +83,7 @@ describe WS2XX::Bridge, :aggregate_failures do
 
     it 'calls shutdown after run completes' do
       allow(mock_ws_client).to receive(:run).and_raise(StandardError)
-      mock_broadcaster = spy('broadcaster')
+      mock_broadcaster = instance_spy(WS2XX::Broadcasters::Base)
       bridge.instance_variable_set(:@broadcaster, mock_broadcaster)
 
       Async do
@@ -104,7 +106,7 @@ describe WS2XX::Bridge, :aggregate_failures do
 
     it 'orchestrates setup_components, run, and shutdown' do
       call_order = []
-      mock_broadcaster = spy('broadcaster')
+      mock_broadcaster = instance_spy(WS2XX::Broadcasters::Base)
 
       allow_any_instance_of(WS2XX::Broadcasters::Builder).to receive(:build) do
         call_order << :build
@@ -127,7 +129,7 @@ describe WS2XX::Bridge, :aggregate_failures do
 
     it 'calls setup_components before run' do
       call_order = []
-      mock_broadcaster = spy('broadcaster')
+      mock_broadcaster = instance_spy(WS2XX::Broadcasters::Base)
 
       allow_any_instance_of(WS2XX::Broadcasters::Builder).to receive(:build) do
         call_order << :build
@@ -148,8 +150,9 @@ describe WS2XX::Bridge, :aggregate_failures do
   end
 
   describe '#shutdown' do
+    let(:mock_broadcaster) { instance_double(WS2XX::Broadcasters::UDP) }
+
     it 'closes the broadcaster' do
-      mock_broadcaster = double('broadcaster')
       allow(mock_broadcaster).to receive(:close)
       bridge.instance_variable_set(:@broadcaster, mock_broadcaster)
 
@@ -176,6 +179,8 @@ describe WS2XX::Bridge, :aggregate_failures do
   end
 
   describe 'attribute readers' do
+    let(:mock_broadcaster) { instance_double(WS2XX::Broadcasters::UDP) }
+
     it 'has config reader' do
       expect(bridge.config).to eq(config)
     end
@@ -186,7 +191,6 @@ describe WS2XX::Bridge, :aggregate_failures do
     end
 
     it 'has broadcaster reader' do
-      mock_broadcaster = double('broadcaster')
       bridge.instance_variable_set(:@broadcaster, mock_broadcaster)
       expect(bridge.broadcaster).to eq(mock_broadcaster)
     end

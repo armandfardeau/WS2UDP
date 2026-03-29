@@ -24,7 +24,7 @@ describe WS2XX::CLI, :aggregate_failures do
       expect(result).to be(cli)
     end
 
-    context 'WebSocket configuration' do
+    context 'when WebSocket configuration is provided' do
       it 'parses --ws-url' do
         cli.parse(['--ws-url', 'wss://example.com/stream'])
         expect(cli.options[:ws_url]).to eq('wss://example.com/stream')
@@ -50,7 +50,7 @@ describe WS2XX::CLI, :aggregate_failures do
       end
     end
 
-    context 'destination configuration' do
+    context 'when destination configuration is provided' do
       it 'parses single UDP destination' do
         cli.parse(['--destination', 'udp://127.0.0.1:5000'])
 
@@ -93,7 +93,7 @@ describe WS2XX::CLI, :aggregate_failures do
       end
     end
 
-    context 'option combinations' do
+    context 'when option combinations are provided' do
       it 'parses all WebSocket and destination options together' do
         cli.parse([
                     '--ws-url', 'wss://example.com/stream',
@@ -124,7 +124,7 @@ describe WS2XX::CLI, :aggregate_failures do
       expect(result).to be(cli)
     end
 
-    context 'valid configurations' do
+    context 'when the configurations are valid' do
       it 'passes with valid destination configuration' do
         cli.parse(['--destination', 'udp://127.0.0.1:5000'])
 
@@ -141,7 +141,7 @@ describe WS2XX::CLI, :aggregate_failures do
       end
     end
 
-    context 'port validation' do
+    context 'when validating ports' do
       it 'raises error if port is too low' do
         cli.instance_variable_set(:@options, {
                                     destinations: [{ type: 'udp', host: '127.0.0.1', port: 0 }],
@@ -179,7 +179,7 @@ describe WS2XX::CLI, :aggregate_failures do
       end
     end
 
-    context 'invalid configurations' do
+    context 'when configurations are invalid' do
       it 'raises error if no destinations and no WebSocket' do
         cli.instance_variable_set(:@options, {
                                     destinations: [],

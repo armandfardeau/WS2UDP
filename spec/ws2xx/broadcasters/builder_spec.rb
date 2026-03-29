@@ -58,7 +58,7 @@ describe WS2XX::Broadcasters::Builder, :aggregate_failures do
       end
     end
 
-    context 'validation errors' do
+    context 'when validation errors occur' do
       it 'raises error if destinations is not an array' do
         expect { builder.build('not an array') }.to raise_error(ArgumentError, 'Destinations must be an array')
       end
