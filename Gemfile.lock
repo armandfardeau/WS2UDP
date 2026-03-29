@@ -10,6 +10,8 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    agent-context (0.3.0)
+      bake (>= 0.23)
     ast (2.4.3)
     async (2.38.1)
       console (~> 1.29)
@@ -17,6 +19,11 @@ GEM
       io-event (~> 1.11)
       metrics (~> 0.12)
       traces (~> 0.18)
+    async-container (0.34.4)
+      async (~> 2.22)
+    async-debug (0.3.0)
+      async-http (~> 0.69)
+      lively (~> 0.10)
     async-http (0.94.2)
       async (>= 2.10.2)
       async-pool (~> 0.11)
@@ -28,17 +35,29 @@ GEM
       protocol-http2 (~> 0.22)
       protocol-url (~> 0.2)
       traces (~> 0.10)
+    async-http-cache (0.4.6)
+      async-http (~> 0.56)
     async-pool (0.11.2)
       async (>= 2.0)
     async-rspec (1.17.1)
       rspec (~> 3.0)
       rspec-files (~> 1.0)
       rspec-memory (~> 1.0)
+    async-service (0.21.0)
+      async
+      async-container (~> 0.34)
+      string-format (~> 0.2)
+    async-utilization (0.3.2)
+      console (~> 1.0)
     async-websocket (0.30.0)
       async-http (~> 0.76)
       protocol-http (~> 0.34)
       protocol-rack (~> 0.7)
       protocol-websocket (~> 0.17)
+    bake (0.24.1)
+      bigdecimal
+      samovar (~> 2.1)
+    bigdecimal (4.1.0)
     childprocess (5.1.0)
       logger (~> 1.5)
     console (1.34.3)
@@ -46,6 +65,19 @@ GEM
       fiber-local (~> 1.1)
       json
     diff-lcs (1.6.2)
+    falcon (0.55.2)
+      async
+      async-container (~> 0.20)
+      async-http (~> 0.75)
+      async-http-cache (~> 0.4)
+      async-service (~> 0.19)
+      async-utilization (~> 0.3)
+      bundler
+      localhost (~> 1.1)
+      openssl (>= 3.0)
+      protocol-http (~> 0.31)
+      protocol-rack (~> 0.7)
+      samovar (~> 2.3)
     fiber-annotation (0.2.0)
     fiber-local (1.1.0)
       fiber-storage
@@ -54,13 +86,27 @@ GEM
     io-endpoint (0.17.2)
     io-event (1.14.5)
     io-stream (0.11.1)
+    io-watch (0.6.3)
     json (2.19.3)
     language_server-protocol (3.17.0.5)
     lint_roller (1.1.0)
+    live (0.18.0)
+      async-websocket (~> 0.27)
+      protocol-websocket (~> 0.19)
+      xrb (~> 0.10)
+    lively (0.16.1)
+      agent-context
+      falcon (~> 0.47)
+      io-watch
+      live (~> 0.18)
+      xrb
+    localhost (1.7.0)
     logger (1.7.0)
+    mapping (1.1.3)
     metrics (0.15.0)
     nmea_plus (1.1.1)
       racc (~> 1.4)
+    openssl (4.0.1)
     overcommit (0.68.0)
       childprocess (>= 0.6.3, < 6)
       iniparse (~> 1.4)
@@ -124,10 +170,15 @@ GEM
       lint_roller (~> 1.1)
       rubocop (~> 1.81)
     ruby-progressbar (1.13.0)
+    samovar (2.4.1)
+      console (~> 1.0)
+      mapping (~> 1.0)
+    string-format (0.2.0)
     traces (0.18.2)
     unicode-display_width (3.2.0)
       unicode-emoji (~> 4.1)
     unicode-emoji (4.2.0)
+    xrb (0.11.2)
     zeitwerk (2.7.5)
 
 PLATFORMS
@@ -137,6 +188,7 @@ PLATFORMS
 DEPENDENCIES
   ais_to_nmea!
   async (~> 2.1)
+  async-debug
   async-rspec
   async-websocket
   bundler (~> 2.0)

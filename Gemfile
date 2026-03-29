@@ -15,4 +15,5 @@ group :development, :test do
   gem 'rubocop-rspec'
 end
 
+gem "async-debug", group: :development
 gem "overcommit", "~> 0.68.0", group: :development

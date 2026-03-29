@@ -4,6 +4,7 @@ require 'async'
 require 'async/http/endpoint'
 require 'async/websocket/client'
 require 'json'
+require "async/debug"
 
 require_relative 'message'
 module WS2XX
@@ -18,7 +19,6 @@ module WS2XX
     end
 
     def run(broadcaster)
-      Async do
         loop do
           begin
             Console.logger.info "[WS CLIENT] Connecting to #{@url}..."
@@ -45,7 +45,6 @@ module WS2XX
           Async::Task.current.sleep(1)
         end
       end
-    end
 
     private
 
@@ -65,6 +64,7 @@ module WS2XX
         broadcaster.broadcast(message.to_nmea)
         Console.logger.info "[WS CLIENT] Broadcasted message: #{message.to_json}"
       else
+        Console.logger.debug "[WS CLIENT] Received message: #{message.to_json}"
         Console.logger.warn "[WS CLIENT] Invalid message received: #{message.errors.join(', ')}"
       end
     end

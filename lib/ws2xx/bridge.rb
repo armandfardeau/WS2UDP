@@ -26,7 +26,9 @@ module WS2XX
     def start
       setup_components
       print_startup_info
-      run
+      around_run do
+        run
+      end
     end
 
     # Setup all bridge components
@@ -37,7 +39,9 @@ module WS2XX
 
     # Run the bridge (blocks until shutdown)
     def run
+      Async do
       @ws_client.run(@broadcaster)
+      end
     ensure
       shutdown
     end
@@ -51,6 +55,22 @@ module WS2XX
     end
 
     private
+
+    def around_run(&block)
+      if !!ENV['WS2XX_DEBUG']
+        Console.logger.info '[BRIDGE] Starting in debug mode...'
+        Sync do
+	
+ Async::Debug.serve
+
+ block.call
+        Console.logger.info '[BRIDGE] Debug session ended.'
+
+        end
+      else
+        block.call
+      end
+    end
 
     def print_startup_info
       Console.logger.info "WS2XX Bridge v#{WS2XX::VERSION}"
